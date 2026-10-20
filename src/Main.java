@@ -1,17 +1,14 @@
-import patterns.behavioral.observer.Phase3Runner;
+import ui.MainMenu;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        // PHASE 1 — Abstract Factory (standalone test)
-        // Phase1Runner.run(); ← runs inside Phase 2
+        // MediQueue — Smart Hospital Queue & Appointment Management System
+        // Design Pattern : Abstract Factory
+        // Team           : Sandhiya O H (23MIS0114)
+        //                  Deepak Kumar S (23MIS0191)
 
-        // PHASE 2 — Facade Pattern (standalone test)
-        // Phase2Runner.run(); ← runs inside Phase 3
-
-        // PHASE 3 — Observer Pattern
-        // Includes Phase 1 + Phase 2 internally
-        Phase3Runner.run();
+        new MainMenu().start();
     }
 }

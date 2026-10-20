@@ -3,6 +3,9 @@
 // PACKAGE  : ui
 // PURPOSE  : Doctor-facing UI — view appointments,
 //            serve next patient, update availability
+//            Uses Abstract Factory (HospitalDepartment) only
+// TEAM     : Sandhiya O H (23MIS0114)
+//            Deepak Kumar S (23MIS0191)
 // ============================================================
 
 package ui;
@@ -10,7 +13,7 @@ package ui;
 import models.Department;
 import models.Doctor;
 import models.Patient;
-import patterns.structural.facade.MediQueueFacade;
+import patterns.creational.abstractfactory.client.HospitalDepartment;
 import utils.ConsoleColors;
 
 import java.util.List;
@@ -21,18 +24,25 @@ public class DoctorDashboard {
     // ─────────────────────────────────────────
     // Fields
     // ─────────────────────────────────────────
-    private final MediQueueFacade facade;
-    private final Scanner         scanner;
+    private final HospitalDepartment generalDept;
+    private final HospitalDepartment emergencyDept;
+    private final HospitalDepartment vipDept;
+    private final Scanner            scanner;
 
     // Selected department
-    private Department currentDept;
+    private HospitalDepartment currentDept;
 
     // ─────────────────────────────────────────
     // Constructor
     // ─────────────────────────────────────────
-    public DoctorDashboard(MediQueueFacade facade, Scanner scanner) {
-        this.facade   = facade;
-        this.scanner  = scanner;
+    public DoctorDashboard(HospitalDepartment generalDept,
+                           HospitalDepartment emergencyDept,
+                           HospitalDepartment vipDept,
+                           Scanner scanner) {
+        this.generalDept   = generalDept;
+        this.emergencyDept = emergencyDept;
+        this.vipDept       = vipDept;
+        this.scanner       = scanner;
     }
 
     // ─────────────────────────────────────────
@@ -78,17 +88,17 @@ public class DoctorDashboard {
         int choice = getIntInput();
 
         switch (choice) {
-            case 1: currentDept = Department.GENERAL;   break;
-            case 2: currentDept = Department.EMERGENCY; break;
-            case 3: currentDept = Department.VIP;       break;
+            case 1: currentDept = generalDept;   break;
+            case 2: currentDept = emergencyDept; break;
+            case 3: currentDept = vipDept;       break;
             default:
-                currentDept = Department.GENERAL;
+                currentDept = generalDept;
                 printInvalid();
         }
 
         System.out.println(ConsoleColors.BOLD_BLUE
             + "\n  [OK] Logged in as : "
-            + currentDept.getDisplayName() + " Doctor"
+            + currentDept.getDepartmentName() + " Doctor"
             + ConsoleColors.RESET);
     }
 
@@ -100,7 +110,7 @@ public class DoctorDashboard {
         System.out.println("  -----------------------------------------------------------------");
         System.out.println("                       DOCTOR DASHBOARD                            ");
         System.out.println("                  Dept : "
-            + currentDept.getDisplayName());
+            + currentDept.getDepartmentName());
         System.out.println("  -----------------------------------------------------------------");
         System.out.println(ConsoleColors.RESET);
 
@@ -121,9 +131,9 @@ public class DoctorDashboard {
     // ─────────────────────────────────────────
     private void viewTodaysAppointments() {
         printHeader("TODAY'S APPOINTMENTS — "
-            + currentDept.getDisplayName());
+            + currentDept.getDepartmentName());
 
-        facade.viewSchedule(currentDept);
+        currentDept.displaySchedule();
     }
 
     // ─────────────────────────────────────────
@@ -131,9 +141,9 @@ public class DoctorDashboard {
     // ─────────────────────────────────────────
     private void viewCurrentQueue() {
         printHeader("CURRENT QUEUE — "
-            + currentDept.getDisplayName());
+            + currentDept.getDepartmentName());
 
-        facade.viewDepartmentQueue(currentDept);
+        currentDept.displayQueueStatus();
     }
 
     // ─────────────────────────────────────────
@@ -141,9 +151,9 @@ public class DoctorDashboard {
     // ─────────────────────────────────────────
     private void serveNextPatient() {
         printHeader("SERVE NEXT PATIENT — "
-            + currentDept.getDisplayName());
+            + currentDept.getDepartmentName());
 
-        Patient served = facade.serveNextPatient(currentDept);
+        Patient served = currentDept.serveNextPatient();
 
         if (served != null) {
             System.out.println(ConsoleColors.BOLD_BLUE);
@@ -172,7 +182,9 @@ public class DoctorDashboard {
     // ─────────────────────────────────────────
     private void viewAllDoctors() {
         printHeader("ALL REGISTERED DOCTORS");
-        facade.viewAllDoctors();
+        generalDept.displayAllDoctors();
+        emergencyDept.displayAllDoctors();
+        vipDept.displayAllDoctors();
     }
 
     // ─────────────────────────────────────────

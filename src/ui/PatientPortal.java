@@ -3,6 +3,9 @@
 // PACKAGE  : ui
 // PURPOSE  : Patient-facing UI — register, book, view queue,
 //            check wait time, cancel/reschedule
+//            Uses Abstract Factory (HospitalDepartment) only
+// TEAM     : Sandhiya O H (23MIS0114)
+//            Deepak Kumar S (23MIS0191)
 // ============================================================
 
 package ui;
@@ -12,10 +15,9 @@ import models.Department;
 import models.Doctor;
 import models.Patient;
 import models.Token;
-import patterns.behavioral.observer.observers.PatientObserver;
-import patterns.behavioral.observer.subject.LiveQueueSubject;
-import patterns.structural.facade.MediQueueFacade;
+import patterns.creational.abstractfactory.client.HospitalDepartment;
 import utils.ConsoleColors;
+import utils.DateTimeUtils;
 
 import java.util.List;
 import java.util.Scanner;
@@ -25,22 +27,26 @@ public class PatientPortal {
     // ─────────────────────────────────────────
     // Fields
     // ─────────────────────────────────────────
-    private final MediQueueFacade  facade;
-    private final LiveQueueSubject queueSubject;
-    private final Scanner          scanner;
+    private final HospitalDepartment generalDept;
+    private final HospitalDepartment emergencyDept;
+    private final HospitalDepartment vipDept;
+    private final Scanner            scanner;
 
-    // Track current logged-in patient
-    private Patient currentPatient;
+    // Track current logged-in patient + their department
+    private Patient          currentPatient;
+    private HospitalDepartment currentDept;
 
     // ─────────────────────────────────────────
     // Constructor
     // ─────────────────────────────────────────
-    public PatientPortal(MediQueueFacade facade,
-                         LiveQueueSubject queueSubject,
+    public PatientPortal(HospitalDepartment generalDept,
+                         HospitalDepartment emergencyDept,
+                         HospitalDepartment vipDept,
                          Scanner scanner) {
-        this.facade       = facade;
-        this.queueSubject = queueSubject;
-        this.scanner      = scanner;
+        this.generalDept   = generalDept;
+        this.emergencyDept = emergencyDept;
+        this.vipDept       = vipDept;
+        this.scanner       = scanner;
     }
 
     // ─────────────────────────────────────────
@@ -140,15 +146,17 @@ public class PatientPortal {
             return;
         }
 
-        // Register via Facade
-        currentPatient = facade.registerPatient(
-            name, age, contact, email, dept, false
+        currentDept = getDeptByDepartment(dept);
+
+        // Create and register patient
+        currentPatient = new Patient(
+            DateTimeUtils.generatePatientId((int)(Math.random() * 9000) + 1000),
+            name, age, contact, email, dept,
+            dept == Department.EMERGENCY,
+            DateTimeUtils.getCurrentTimestamp()
         );
 
-        // Register Patient Observer
-        queueSubject.registerObserver(
-            new PatientObserver(currentPatient)
-        );
+        currentDept.registerPatient(currentPatient);
 
         printSuccess("Registration successful! Patient ID: "
             + currentPatient.getPatientId());
@@ -162,10 +170,7 @@ public class PatientPortal {
 
         printHeader("BOOK APPOINTMENT");
 
-        // Show available doctors
-        List<Doctor> doctors = facade.getAvailableDoctors(
-            currentPatient.getDepartment()
-        );
+        List<Doctor> doctors = currentDept.getAvailableDoctors();
 
         if (doctors.isEmpty()) {
             printError("No doctors available in "
@@ -201,13 +206,10 @@ public class PatientPortal {
             + ConsoleColors.RESET);
         String time = scanner.nextLine().trim();
 
-        Appointment apt = facade.bookAppointment(
-            currentPatient, selectedDoc, time
-        );
+        Appointment apt = currentDept.bookAppointment(currentPatient, selectedDoc, time);
 
         if (apt != null) {
-            printSuccess("Appointment booked! ID: "
-                + apt.getAppointmentId());
+            printSuccess("Appointment booked! ID: " + apt.getAppointmentId());
         }
     }
 
@@ -219,24 +221,18 @@ public class PatientPortal {
 
         printHeader("GENERATE TOKEN & JOIN QUEUE");
 
-        Token token = facade.generateTokenAndAdmit(currentPatient);
+        currentDept.admitPatient(currentPatient);
 
-        if (token != null) {
-            System.out.println(ConsoleColors.BOLD_GREEN);
-            System.out.println("  +------------------------------------------+");
-            System.out.println("  |           YOUR DIGITAL TOKEN              |");
-            System.out.println("  +------------------------------------------+");
-            System.out.printf ("  |  Token Number : %-25s|%n",
-                String.format("%03d", token.getTokenNumber()));
-            System.out.printf ("  |  Patient      : %-25s|%n",
-                currentPatient.getName());
-            System.out.printf ("  |  Department   : %-25s|%n",
-                currentPatient.getDepartment().getCode());
-            System.out.printf ("  |  Issued At    : %-25s|%n",
-                token.getIssuedAt());
-            System.out.println("  +------------------------------------------+");
-            System.out.println(ConsoleColors.RESET);
-        }
+        System.out.println(ConsoleColors.BOLD_GREEN);
+        System.out.println("  +------------------------------------------+");
+        System.out.println("  |           QUEUE ADMISSION                 |");
+        System.out.printf ("  |  Patient      : %-25s|%n", currentPatient.getName());
+        System.out.printf ("  |  Department   : %-25s|%n",
+            currentPatient.getDepartment().getDisplayName());
+        System.out.printf ("  |  Admitted At  : %-25s|%n",
+            DateTimeUtils.getCurrentTimestamp());
+        System.out.println("  +------------------------------------------+");
+        System.out.println(ConsoleColors.RESET);
     }
 
     // ─────────────────────────────────────────
@@ -255,13 +251,15 @@ public class PatientPortal {
             + "  >> Department : " + ConsoleColors.RESET);
         int choice = getIntInput();
 
-        Department dept = getDepartmentFromChoice(choice);
-
-        if (dept == null) {
-            // Show all departments
-            facade.viewAllQueueStatus();
-        } else {
-            facade.viewDepartmentQueue(dept);
+        switch (choice) {
+            case 1: generalDept.displayQueueStatus();   break;
+            case 2: emergencyDept.displayQueueStatus(); break;
+            case 3: vipDept.displayQueueStatus();       break;
+            default:
+                // Show all
+                generalDept.displayQueueStatus();
+                emergencyDept.displayQueueStatus();
+                vipDept.displayQueueStatus();
         }
     }
 
@@ -273,10 +271,14 @@ public class PatientPortal {
 
         printHeader("ESTIMATED WAIT TIME");
 
-        int waitTime = facade.getEstimatedWaitTime(currentPatient);
+        int waitTime = currentDept.getWaitTime(currentPatient.getPatientId());
 
         if (waitTime == -1) {
             printError("You are not currently in any queue.");
+        } else {
+            System.out.println(ConsoleColors.BOLD_GREEN
+                + "\n  Estimated Wait Time : " + waitTime + " minutes"
+                + ConsoleColors.RESET);
         }
     }
 
@@ -292,11 +294,7 @@ public class PatientPortal {
             + "  >> Appointment ID : " + ConsoleColors.RESET);
         String aptId = scanner.nextLine().trim();
 
-        facade.cancelAppointment(
-            currentPatient,
-            aptId,
-            currentPatient.getDepartment()
-        );
+        currentDept.cancelAppointment(currentPatient, aptId);
     }
 
     // ─────────────────────────────────────────
@@ -315,12 +313,7 @@ public class PatientPortal {
             + "  >> New Time        : " + ConsoleColors.RESET);
         String newTime = scanner.nextLine().trim();
 
-        facade.rescheduleAppointment(
-            currentPatient,
-            aptId,
-            newTime,
-            currentPatient.getDepartment()
-        );
+        currentDept.rescheduleAppointment(currentPatient, aptId, newTime);
     }
 
     // ─────────────────────────────────────────
@@ -352,8 +345,19 @@ public class PatientPortal {
         System.out.println("  +------------------------------------------+");
         System.out.println(ConsoleColors.RESET);
 
-        // Show appointment schedule
-        facade.viewSchedule(currentPatient.getDepartment());
+        // Show appointment schedule for patient's department
+        currentDept.displaySchedule();
+    }
+
+    // ─────────────────────────────────────────
+    // Helper — Get HospitalDepartment by Department
+    // ─────────────────────────────────────────
+    private HospitalDepartment getDeptByDepartment(Department dept) {
+        switch (dept) {
+            case EMERGENCY: return emergencyDept;
+            case VIP:       return vipDept;
+            default:        return generalDept;
+        }
     }
 
     // ─────────────────────────────────────────

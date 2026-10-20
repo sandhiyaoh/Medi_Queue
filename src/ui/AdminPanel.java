@@ -4,15 +4,18 @@
 // PURPOSE  : Admin-facing UI — full system control
 //            View all data, handle emergencies,
 //            serve queues, view system summary
+//            Uses Abstract Factory (HospitalDepartment) only
+// TEAM     : Sandhiya O H (23MIS0114)
+//            Deepak Kumar S (23MIS0191)
 // ============================================================
 
 package ui;
 
 import models.Department;
 import models.Patient;
-import patterns.behavioral.observer.subject.LiveQueueSubject;
-import patterns.structural.facade.MediQueueFacade;
+import patterns.creational.abstractfactory.client.HospitalDepartment;
 import utils.ConsoleColors;
+import utils.DateTimeUtils;
 
 import java.util.Scanner;
 
@@ -21,19 +24,22 @@ public class AdminPanel {
     // ─────────────────────────────────────────
     // Fields
     // ─────────────────────────────────────────
-    private final MediQueueFacade  facade;
-    private final LiveQueueSubject queueSubject;
-    private final Scanner          scanner;
+    private final HospitalDepartment generalDept;
+    private final HospitalDepartment emergencyDept;
+    private final HospitalDepartment vipDept;
+    private final Scanner            scanner;
 
     // ─────────────────────────────────────────
     // Constructor
     // ─────────────────────────────────────────
-    public AdminPanel(MediQueueFacade facade,
-                      LiveQueueSubject queueSubject,
+    public AdminPanel(HospitalDepartment generalDept,
+                      HospitalDepartment emergencyDept,
+                      HospitalDepartment vipDept,
                       Scanner scanner) {
-        this.facade       = facade;
-        this.queueSubject = queueSubject;
-        this.scanner      = scanner;
+        this.generalDept   = generalDept;
+        this.emergencyDept = emergencyDept;
+        this.vipDept       = vipDept;
+        this.scanner       = scanner;
     }
 
     // ─────────────────────────────────────────
@@ -55,11 +61,9 @@ public class AdminPanel {
                 case 5:  handleEmergency();         break;
                 case 6:  broadcastAlert();          break;
                 case 7:  servePatient();            break;
-                case 8:  viewEmergencyLog();        break;
-                case 9:  viewAllTokens();           break;
-                case 10: viewObservers();           break;
-                case 11: viewSystemSummary();       break;
-                case 12: running = false;           break;
+                case 8:  viewEmergencyPatients();   break;
+                case 9:  viewSystemSummary();       break;
+                case 10: running = false;           break;
                 default: printInvalid();
             }
         }
@@ -85,17 +89,15 @@ public class AdminPanel {
         System.out.println("   [3]   View All Department Queues");
         System.out.println("   [4]   View All Appointment Schedules");
         System.out.println("   [7]   Serve Next Patient (Any Dept)");
-        System.out.println("   [9]   View All Issued Tokens");
         System.out.println();
         System.out.println("  -- EMERGENCY --");
         System.out.println("   [5]   Handle Emergency Patient");
         System.out.println("   [6]   Broadcast System Alert");
-        System.out.println("   [8]   View Emergency Log");
+        System.out.println("   [8]   View Emergency Patients");
         System.out.println();
-        System.out.println("  -- OBSERVER & SYSTEM --");
-        System.out.println("   [10]  View All Observers");
-        System.out.println("   [11]  View System Summary");
-        System.out.println("   [12]  Back to Main Menu");
+        System.out.println("  -- SYSTEM --");
+        System.out.println("   [9]   View System Summary");
+        System.out.println("   [10]  Back to Main Menu");
         System.out.println(ConsoleColors.RESET);
 
         System.out.print(ConsoleColors.BOLD_PURPLE
@@ -107,7 +109,9 @@ public class AdminPanel {
     // ─────────────────────────────────────────
     private void viewAllPatients() {
         printHeader("ALL REGISTERED PATIENTS");
-        facade.viewAllPatients();
+        generalDept.displayAllPatients();
+        emergencyDept.displayAllPatients();
+        vipDept.displayAllPatients();
     }
 
     // ─────────────────────────────────────────
@@ -115,7 +119,9 @@ public class AdminPanel {
     // ─────────────────────────────────────────
     private void viewAllDoctors() {
         printHeader("ALL REGISTERED DOCTORS");
-        facade.viewAllDoctors();
+        generalDept.displayAllDoctors();
+        emergencyDept.displayAllDoctors();
+        vipDept.displayAllDoctors();
     }
 
     // ─────────────────────────────────────────
@@ -124,15 +130,20 @@ public class AdminPanel {
     private void viewAllQueues() {
         printHeader("ALL DEPARTMENT QUEUES");
 
-        facade.viewAllQueueStatus();
+        System.out.println(ConsoleColors.BOLD_WHITE
+            + "\n  -- General Department Queue --"
+            + ConsoleColors.RESET);
+        generalDept.displayQueueStatus();
 
         System.out.println(ConsoleColors.BOLD_WHITE
-            + "\n  -- Detailed Queue View --"
+            + "\n  -- Emergency Department Queue --"
             + ConsoleColors.RESET);
+        emergencyDept.displayQueueStatus();
 
-        facade.viewDepartmentQueue(Department.GENERAL);
-        facade.viewDepartmentQueue(Department.EMERGENCY);
-        facade.viewDepartmentQueue(Department.VIP);
+        System.out.println(ConsoleColors.BOLD_WHITE
+            + "\n  -- VIP Department Queue --"
+            + ConsoleColors.RESET);
+        vipDept.displayQueueStatus();
     }
 
     // ─────────────────────────────────────────
@@ -141,9 +152,17 @@ public class AdminPanel {
     private void viewAllSchedules() {
         printHeader("ALL APPOINTMENT SCHEDULES");
 
-        facade.viewSchedule(Department.GENERAL);
-        facade.viewSchedule(Department.EMERGENCY);
-        facade.viewSchedule(Department.VIP);
+        System.out.println(ConsoleColors.BOLD_WHITE
+            + "\n  -- General Department --" + ConsoleColors.RESET);
+        generalDept.displaySchedule();
+
+        System.out.println(ConsoleColors.BOLD_WHITE
+            + "\n  -- Emergency Department --" + ConsoleColors.RESET);
+        emergencyDept.displaySchedule();
+
+        System.out.println(ConsoleColors.BOLD_WHITE
+            + "\n  -- VIP Department --" + ConsoleColors.RESET);
+        vipDept.displaySchedule();
     }
 
     // ─────────────────────────────────────────
@@ -168,18 +187,26 @@ public class AdminPanel {
             + "  >> Email           : " + ConsoleColors.RESET);
         String email = scanner.nextLine().trim();
 
-        // Register and immediately handle as emergency
-        Patient emergencyPatient = facade.registerPatient(
+        // Create emergency patient
+        Patient emergencyPatient = new Patient(
+            DateTimeUtils.generatePatientId((int)(Math.random() * 9000) + 1000),
             name, age, contact, email,
-            Department.EMERGENCY, true
+            Department.EMERGENCY, true,
+            DateTimeUtils.getCurrentTimestamp()
         );
 
-        // Trigger emergency with observer notifications
-        queueSubject.triggerEmergencyWithNotification(emergencyPatient);
+        // Register and admit to emergency queue
+        emergencyDept.registerPatient(emergencyPatient);
+        emergencyDept.admitPatient(emergencyPatient);
+
+        // Broadcast emergency alert to all departments
+        String alertMsg = "EMERGENCY: " + name + " admitted to Emergency Department!";
+        generalDept.broadcastAlert(alertMsg);
+        emergencyDept.broadcastAlert(alertMsg);
+        vipDept.broadcastAlert(alertMsg);
 
         System.out.println(ConsoleColors.BOLD_RED
-            + "\n  [!!!] Emergency patient admitted and all"
-            + " observers notified!"
+            + "\n  [!!!] Emergency patient admitted and alert broadcast to all departments!"
             + ConsoleColors.RESET);
     }
 
@@ -193,7 +220,9 @@ public class AdminPanel {
             + "  >> Alert Message : " + ConsoleColors.RESET);
         String message = scanner.nextLine().trim();
 
-        facade.broadcastAlert(message);
+        generalDept.broadcastAlert(message);
+        emergencyDept.broadcastAlert(message);
+        vipDept.broadcastAlert(message);
 
         System.out.println(ConsoleColors.BOLD_RED
             + "\n  [OK] Alert broadcast to all departments."
@@ -217,58 +246,59 @@ public class AdminPanel {
             + "\n  >> Department : " + ConsoleColors.RESET);
         int choice = getIntInput();
 
-        Department dept;
+        HospitalDepartment dept;
 
         switch (choice) {
-            case 1: dept = Department.GENERAL;   break;
-            case 2: dept = Department.EMERGENCY; break;
-            case 3: dept = Department.VIP;       break;
+            case 1: dept = generalDept;   break;
+            case 2: dept = emergencyDept; break;
+            case 3: dept = vipDept;       break;
             default:
                 printInvalid();
                 return;
         }
 
-        // Serve with observer notification
-        Patient served = queueSubject.serveNextWithNotification(dept);
+        Patient served = dept.serveNextPatient();
 
         if (served == null) {
             System.out.println(ConsoleColors.BOLD_YELLOW
                 + "\n  [INFO] No patients in "
-                + dept.getDisplayName() + " queue."
+                + dept.getDepartmentName() + " queue."
+                + ConsoleColors.RESET);
+        } else {
+            System.out.println(ConsoleColors.BOLD_GREEN
+                + "\n  [OK] Served patient: " + served.getName()
                 + ConsoleColors.RESET);
         }
     }
 
     // ─────────────────────────────────────────
-    // 8. View Emergency Log
+    // 8. View Emergency Patients
     // ─────────────────────────────────────────
-    private void viewEmergencyLog() {
-        printHeader("EMERGENCY LOG");
-        facade.viewEmergencyLog();
+    private void viewEmergencyPatients() {
+        printHeader("EMERGENCY PATIENTS");
+        emergencyDept.displayAllPatients();
     }
 
     // ─────────────────────────────────────────
-    // 9. View All Tokens
-    // ─────────────────────────────────────────
-    private void viewAllTokens() {
-        printHeader("ALL ISSUED TOKENS");
-        facade.viewAllTokens();
-    }
-
-    // ─────────────────────────────────────────
-    // 10. View All Observers
-    // ─────────────────────────────────────────
-    private void viewObservers() {
-        printHeader("REGISTERED OBSERVERS");
-        queueSubject.displayObservers();
-    }
-
-    // ─────────────────────────────────────────
-    // 11. System Summary
+    // 9. System Summary
     // ─────────────────────────────────────────
     private void viewSystemSummary() {
         printHeader("SYSTEM SUMMARY");
-        facade.viewSystemSummary();
+
+        System.out.println(ConsoleColors.BOLD_WHITE);
+        System.out.println("  +--------------------------------------------------+");
+        System.out.println("  |              MEDIQUEUE SYSTEM SUMMARY             |");
+        System.out.println("  +--------------------------------------------------+");
+        System.out.printf ("  |  Design Pattern   : %-29s|%n", "Abstract Factory");
+        System.out.printf ("  |  Departments      : %-29s|%n", "General | Emergency | VIP");
+        System.out.printf ("  |  General Patients : %-29s|%n", generalDept.getAllPatients().size());
+        System.out.printf ("  |  Emergency Pts    : %-29s|%n", emergencyDept.getAllPatients().size());
+        System.out.printf ("  |  VIP Patients     : %-29s|%n", vipDept.getAllPatients().size());
+        System.out.printf ("  |  General Doctors  : %-29s|%n", generalDept.getAllDoctors().size());
+        System.out.printf ("  |  Emergency Doctors: %-29s|%n", emergencyDept.getAllDoctors().size());
+        System.out.printf ("  |  VIP Doctors      : %-29s|%n", vipDept.getAllDoctors().size());
+        System.out.println("  +--------------------------------------------------+");
+        System.out.println(ConsoleColors.RESET);
     }
 
     // ─────────────────────────────────────────

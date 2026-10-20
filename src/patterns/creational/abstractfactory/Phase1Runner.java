@@ -1,9 +1,11 @@
 // ============================================================
 // FILE     : Phase1Runner.java
 // PACKAGE  : patterns.creational.abstractfactory
-// PURPOSE  : Test runner for Phase 1 — Abstract Factory
-//            Demonstrates all three department factories
-//            with real Patient, Doctor, and Appointment data
+// PURPOSE  : Demo runner — Abstract Factory Pattern
+//            MediQueue : Smart Hospital Queue & Appointment
+//            Management System
+// TEAM     : Sandhiya O H (23MIS0114)
+//            Deepak Kumar S (23MIS0191)
 // ============================================================
 
 package patterns.creational.abstractfactory;
@@ -66,15 +68,15 @@ public class Phase1Runner {
         // ─────────────────────────────────────
         Patient p1 = new Patient(
             DateTimeUtils.generatePatientId(1),
-            "Thulasiraman", 21, "9000000001",
-            "thulasi@email.com", Department.GENERAL, false,
+            "Sandhiya", 22, "9000000001",
+            "sandhiya@email.com", Department.GENERAL, false,
             DateTimeUtils.getCurrentTimestamp()
         );
 
         Patient p2 = new Patient(
             DateTimeUtils.generatePatientId(2),
-            "Suresh", 23, "9000000002",
-            "suresh@email.com", Department.GENERAL, false,
+            "Deepak Kumar", 23, "9000000002",
+            "deepak@email.com", Department.GENERAL, false,
             DateTimeUtils.getCurrentTimestamp()
         );
 

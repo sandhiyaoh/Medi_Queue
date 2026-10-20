@@ -23,7 +23,7 @@ public class ConsolePrinter {
         System.out.println(BOLD_CYAN);
         printLine("=");
         System.out.println(center("MediQueue: Smart Hospital Management System"));
-        System.out.println(center("Design Patterns: Abstract Factory | Facade | Observer"));
+        System.out.println(center("Design Pattern  : Abstract Factory"));
         printLine("=");
         System.out.println(RESET);
     }

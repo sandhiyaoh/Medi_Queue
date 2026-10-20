@@ -3,17 +3,19 @@
 // PACKAGE  : ui
 // PURPOSE  : Main entry menu — routes to Patient Portal,
 //            Doctor Dashboard, Admin Panel
-//            Talks ONLY to MediQueueFacade + LiveQueueSubject
+//            Uses Abstract Factory (HospitalDepartment) only
+// TEAM     : Sandhiya O H (23MIS0114)
+//            Deepak Kumar S (23MIS0191)
 // ============================================================
 
 package ui;
 
 import models.Department;
 import models.Doctor;
-import patterns.behavioral.observer.observers.AdminObserver;
-import patterns.behavioral.observer.observers.DoctorObserver;
-import patterns.behavioral.observer.subject.LiveQueueSubject;
-import patterns.structural.facade.MediQueueFacade;
+import patterns.creational.abstractfactory.client.HospitalDepartment;
+import patterns.creational.abstractfactory.factories.EmergencyHospitalFactory;
+import patterns.creational.abstractfactory.factories.GeneralHospitalFactory;
+import patterns.creational.abstractfactory.factories.VIPHospitalFactory;
 import utils.ConsoleColors;
 import utils.DateTimeUtils;
 
@@ -24,20 +26,23 @@ public class MainMenu {
     // ─────────────────────────────────────────
     // Fields
     // ─────────────────────────────────────────
-    private final MediQueueFacade  facade;
-    private final LiveQueueSubject queueSubject;
-    private final Scanner          scanner;
+    private final HospitalDepartment generalDept;
+    private final HospitalDepartment emergencyDept;
+    private final HospitalDepartment vipDept;
+    private final Scanner            scanner;
 
     // ─────────────────────────────────────────
     // Constructor
     // ─────────────────────────────────────────
     public MainMenu() {
-        this.scanner      = new Scanner(System.in);
-        this.facade       = new MediQueueFacade();
-        this.queueSubject = new LiveQueueSubject(facade);
+        this.scanner       = new Scanner(System.in);
+
+        // Create department instances using Abstract Factory
+        this.generalDept   = new HospitalDepartment(new GeneralHospitalFactory());
+        this.emergencyDept = new HospitalDepartment(new EmergencyHospitalFactory());
+        this.vipDept       = new HospitalDepartment(new VIPHospitalFactory());
 
         initializeDefaultDoctors();
-        initializeDefaultObservers();
     }
 
     // ─────────────────────────────────────────
@@ -60,24 +65,21 @@ public class MainMenu {
             Department.VIP, true, "9876543003"
         );
 
-        facade.registerDoctor(d1);
-        facade.registerDoctor(d2);
-        facade.registerDoctor(d3);
-
-        // Register Doctor Observers
-        queueSubject.registerObserver(new DoctorObserver(d1));
-        queueSubject.registerObserver(new DoctorObserver(d2));
-        queueSubject.registerObserver(new DoctorObserver(d3));
+        generalDept.registerDoctor(d1);
+        emergencyDept.registerDoctor(d2);
+        vipDept.registerDoctor(d3);
     }
 
     // ─────────────────────────────────────────
-    // Initialize Default Observers
+    // Get department by choice
     // ─────────────────────────────────────────
-    private void initializeDefaultObservers() {
-        // Admin always watching all departments
-        queueSubject.registerObserver(
-            new AdminObserver("Admin-MediQueue")
-        );
+    public HospitalDepartment getDept(int choice) {
+        switch (choice) {
+            case 1: return generalDept;
+            case 2: return emergencyDept;
+            case 3: return vipDept;
+            default: return null;
+        }
     }
 
     // ─────────────────────────────────────────
@@ -93,13 +95,13 @@ public class MainMenu {
 
             switch (choice) {
                 case 1:
-                    new PatientPortal(facade, queueSubject, scanner).show();
+                    new PatientPortal(generalDept, emergencyDept, vipDept, scanner).show();
                     break;
                 case 2:
-                    new DoctorDashboard(facade, scanner).show();
+                    new DoctorDashboard(generalDept, emergencyDept, vipDept, scanner).show();
                     break;
                 case 3:
-                    new AdminPanel(facade, queueSubject, scanner).show();
+                    new AdminPanel(generalDept, emergencyDept, vipDept, scanner).show();
                     break;
                 case 4:
                     printExit();
@@ -120,7 +122,8 @@ public class MainMenu {
         System.out.println(ConsoleColors.BOLD_CYAN);
         System.out.println("  =================================================================");
         System.out.println("         MediQueue : Smart Hospital Management System             ");
-        System.out.println("         Design Patterns : Abstract Factory | Facade | Observer   ");
+        System.out.println("         Design Pattern  : Abstract Factory                       ");
+        System.out.println("         Team            : Sandhiya O H | Deepak Kumar S          ");
         System.out.println("  =================================================================");
         System.out.println(ConsoleColors.RESET);
 
