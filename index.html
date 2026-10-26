@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediQueue — Smart Hospital Queue & Appointment Management System</title>
+  <meta name="description" content="A modern hospital queue, digital token generation, and appointment management system using the Abstract Factory design pattern.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+
+  <!-- Header -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 4v16m-8-8h16"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">MediQueue</h1>
+          <p class="brand-subtitle">Smart Hospital Queue & Appointment System</p>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <span class="pattern-badge" id="patternBadge">
+          <span class="badge-dot"></span> Pattern: Abstract Factory
+        </span>
+        <button type="button" id="btnLoadTestData" class="btn btn-secondary">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242M12 12v9m-4-4 4 4 4-4"/>
+          </svg>
+          Load Test Data
+        </button>
+        <button type="button" id="btnResetSystem" class="btn btn-ghost" title="Reset all data">
+          Clear
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-layout">
+
+    <!-- KPI Metrics Ribbon -->
+    <section class="stats-ribbon" aria-label="Hospital System Statistics">
+      <div class="stat-card">
+        <div class="stat-icon icon-blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div>
+          <span class="stat-label">Total Patients Registered</span>
+          <span class="stat-val" id="statTotalPatients">0</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon icon-green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div>
+          <span class="stat-label">In Waiting Queue</span>
+          <span class="stat-val" id="statInQueue">0</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon icon-red">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+          <span class="stat-label">Emergency Cases</span>
+          <span class="stat-val" id="statEmergencyCount">0</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon icon-purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div>
+          <span class="stat-label">Appointments Booked</span>
+          <span class="stat-val" id="statAppointmentsCount">0</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Content Grid: Left Input Column, Right Output Column -->
+    <div class="content-grid">
+
+      <!-- LEFT: Interactive Forms & Controls -->
+      <section class="left-panel">
+        
+        <!-- Action Tabs -->
+        <div class="tabs-header">
+          <button type="button" class="tab-btn active" data-tab="tab-patient" id="tabBtnPatient">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+            1. Patient Admission
+          </button>
+          <button type="button" class="tab-btn" data-tab="tab-appointment" id="tabBtnAppointment">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            2. Book Appointment
+          </button>
+          <button type="button" class="tab-btn" data-tab="tab-emergency" id="tabBtnEmergency">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            3. Emergency Alert
+          </button>
+        </div>
+
+        <!-- TAB 1: Patient Admission & Token Generation -->
+        <div class="tab-pane active" id="tab-patient">
+          <div class="card glass-card">
+            <div class="card-header">
+              <h2>Patient Registration & Digital Token</h2>
+              <p>Enter patient details. Abstract Factory will instantiate the department's specific Queue & Notification channels.</p>
+            </div>
+
+            <form id="formAdmitPatient" class="form-body">
+              <div class="form-row">
+                <div class="form-group flex-2">
+                  <label for="patientName">Full Name *</label>
+                  <input type="text" id="patientName" placeholder="e.g. Sandhiya O H" required>
+                </div>
+                <div class="form-group flex-1">
+                  <label for="patientAge">Age *</label>
+                  <input type="number" id="patientAge" placeholder="22" min="1" max="120" required>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label for="patientContact">Contact Number *</label>
+                  <input type="tel" id="patientContact" placeholder="9876543210" required>
+                </div>
+                <div class="form-group flex-1">
+                  <label for="patientEmail">Email Address</label>
+                  <input type="email" id="patientEmail" placeholder="patient@hospital.com">
+                </div>
+              </div>
+
+              <!-- Department Choice -->
+              <div class="form-group">
+                <label>Select Hospital Department *</label>
+                <div class="dept-selector">
+                  <label class="dept-option dept-gen active">
+                    <input type="radio" name="deptChoice" value="GENERAL" checked>
+                    <span class="dept-title">General OPD</span>
+                    <span class="dept-sub">FIFO Queue • SMS Alerts • ~15m wait</span>
+                  </label>
+
+                  <label class="dept-option dept-emg">
+                    <input type="radio" name="deptChoice" value="EMERGENCY">
+                    <span class="dept-title">Emergency Trauma</span>
+                    <span class="dept-sub">Priority 1 Triage • Alarm Broadcast • 0m wait</span>
+                  </label>
+
+                  <label class="dept-option dept-vip">
+                    <input type="radio" name="deptChoice" value="VIP">
+                    <span class="dept-title">VIP Lounge</span>
+                    <span class="dept-sub">Priority 2 Expedited • Concierge • ~5m wait</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-check" id="emergencyToggleContainer">
+                <input type="checkbox" id="isEmergencyCheck">
+                <label for="isEmergencyCheck">Mark as Critical Emergency (STAT Priority Triage)</label>
+              </div>
+
+              <button type="submit" id="btnSubmitPatient" class="btn btn-primary btn-block">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
+                Generate Token & Admit to Queue
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- TAB 2: Book Appointment -->
+        <div class="tab-pane" id="tab-appointment">
+          <div class="card glass-card">
+            <div class="card-header">
+              <h2>Schedule Specialist Appointment</h2>
+              <p>Book a consultation using the department-specific AppointmentScheduler.</p>
+            </div>
+
+            <form id="formBookAppointment" class="form-body">
+              <div class="form-group">
+                <label for="apptPatientSelect">Select Registered Patient *</label>
+                <select id="apptPatientSelect" required>
+                  <option value="">-- Choose a patient --</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="apptDoctorSelect">Select Specialist Doctor *</label>
+                <select id="apptDoctorSelect" required>
+                  <option value="">-- Choose a doctor --</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="apptTimeSlot">Preferred Time Slot *</label>
+                <select id="apptTimeSlot" required>
+                  <option value="10:00 AM">10:00 AM (Morning Slot)</option>
+                  <option value="11:30 AM">11:30 AM (Morning Slot)</option>
+                  <option value="02:00 PM">02:00 PM (Afternoon Slot)</option>
+                  <option value="03:30 PM">03:30 PM (Evening Slot)</option>
+                  <option value="IMMEDIATE">IMMEDIATE / STAT (Emergency Ward)</option>
+                </select>
+              </div>
+
+              <button type="submit" id="btnSubmitAppointment" class="btn btn-primary btn-block">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Confirm Appointment & Dispatch Alerts
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- TAB 3: Emergency Broadcast -->
+        <div class="tab-pane" id="tab-emergency">
+          <div class="card glass-card emergency-card">
+            <div class="card-header">
+              <div class="alert-icon-title">
+                <span class="pulse-dot"></span>
+                <h2>Emergency Trauma Alert Dispatcher</h2>
+              </div>
+              <p>Broadcast critical trauma alerts across all hospital departments and staff channels.</p>
+            </div>
+
+            <form id="formEmergencyBroadcast" class="form-body">
+              <div class="form-group">
+                <label for="emergencyMessage">Emergency Announcement</label>
+                <textarea id="emergencyMessage" rows="3" placeholder="Critical patient admitted to Emergency Ward! Trauma team on standby.">Critical patient admitted to Emergency Ward! Trauma team on standby.</textarea>
+              </div>
+
+              <button type="submit" id="btnSubmitBroadcast" class="btn btn-danger btn-block">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                Broadcast Code Red Alarm
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Abstract Factory Architecture Mini-Card -->
+        <div class="card glass-card pattern-explainer">
+          <div class="explainer-header">
+            <h3>Abstract Factory Binding Status</h3>
+            <span class="active-factory-pill" id="activeFactoryPill">GeneralHospitalFactory</span>
+          </div>
+          <div class="factory-grid">
+            <div class="factory-item">
+              <span class="f-label">Queue Product:</span>
+              <span class="f-val" id="productQueueVal">GeneralQueue (FIFO)</span>
+            </div>
+            <div class="factory-item">
+              <span class="f-label">Scheduler Product:</span>
+              <span class="f-val" id="productSchedulerVal">GeneralScheduler</span>
+            </div>
+            <div class="factory-item">
+              <span class="f-label">Notification Product:</span>
+              <span class="f-val" id="productNotifVal">SMSNotification (SMS)</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- RIGHT: Live Output Displays -->
+      <section class="right-panel">
+
+        <!-- LATEST GENERATED TOKEN PASSCARD -->
+        <div class="card token-passcard" id="tokenPassCard">
+          <div class="passcard-header">
+            <div>
+              <span class="passcard-sub">OFFICIAL HOSPITAL TOKEN</span>
+              <h3 class="passcard-title" id="ticketDeptName">General Department</h3>
+            </div>
+            <div class="passcard-badge" id="ticketPriorityBadge">REGULAR FIFO</div>
+          </div>
+
+          <div class="passcard-body">
+            <div class="token-number-box">
+              <span class="token-small">TOKEN NUMBER</span>
+              <span class="token-huge" id="ticketTokenNumber">#001</span>
+              <span class="token-id" id="ticketTokenId">TKN-GEN-001</span>
+            </div>
+            <div class="token-details">
+              <div class="detail-row">
+                <span class="d-label">Patient Name:</span>
+                <span class="d-val" id="ticketPatientName">Sandhiya</span>
+              </div>
+              <div class="detail-row">
+                <span class="d-label">Patient ID:</span>
+                <span class="d-val" id="ticketPatientId">PAT-001</span>
+              </div>
+              <div class="detail-row">
+                <span class="d-label">Queue Position:</span>
+                <span class="d-val highlight-val" id="ticketQueuePos">#1</span>
+              </div>
+              <div class="detail-row">
+                <span class="d-label">Est. Wait Time:</span>
+                <span class="d-val wait-val" id="ticketWaitTime">0 mins</span>
+              </div>
+            </div>
+          </div>
+          <div class="passcard-footer">
+            <span id="ticketTimestamp">Issued: 2026-10-26 16:30</span>
+            <span class="channel-tag" id="ticketChannelTag">Channel: SMS</span>
+          </div>
+        </div>
+
+        <!-- 3 DEPARTMENT QUEUES DISPLAY -->
+        <div class="queues-container">
+          <div class="section-title-row">
+            <h2>Live Department Queues</h2>
+            <span class="live-indicator"><span class="blink-dot"></span> LIVE MONITOR</span>
+          </div>
+
+          <div class="departments-grid">
+
+            <!-- EMERGENCY QUEUE -->
+            <div class="dept-column col-emergency">
+              <div class="dept-col-header">
+                <div class="col-title">
+                  <span class="dept-indicator ind-emg"></span>
+                  <h4>Emergency Ward</h4>
+                </div>
+                <span class="count-pill emg-pill" id="countEmergency">0</span>
+              </div>
+              <p class="dept-col-sub">Immediate Triage (Priority 1) • 0m wait</p>
+              
+              <div class="queue-list" id="queueEmergencyList">
+                <div class="empty-state">No emergency cases</div>
+              </div>
+
+              <button type="button" class="btn btn-serve btn-serve-emg" id="btnServeEmergency">
+                Serve Next STAT Patient
+              </button>
+            </div>
+
+            <!-- VIP LOUNGE QUEUE -->
+            <div class="dept-column col-vip">
+              <div class="dept-col-header">
+                <div class="col-title">
+                  <span class="dept-indicator ind-vip"></span>
+                  <h4>VIP Lounge</h4>
+                </div>
+                <span class="count-pill vip-pill" id="countVIP">0</span>
+              </div>
+              <p class="dept-col-sub">Expedited Priority (Priority 2) • 5m wait</p>
+              
+              <div class="queue-list" id="queueVIPList">
+                <div class="empty-state">VIP lounge queue is clear</div>
+              </div>
+
+              <button type="button" class="btn btn-serve btn-serve-vip" id="btnServeVIP">
+                Call Next VIP Guest
+              </button>
+            </div>
+
+            <!-- GENERAL QUEUE -->
+            <div class="dept-column col-general">
+              <div class="dept-col-header">
+                <div class="col-title">
+                  <span class="dept-indicator ind-gen"></span>
+                  <h4>General OPD</h4>
+                </div>
+                <span class="count-pill gen-pill" id="countGeneral">0</span>
+              </div>
+              <p class="dept-col-sub">Standard FIFO (Priority 3) • 15m wait</p>
+              
+              <div class="queue-list" id="queueGeneralList">
+                <div class="empty-state">No patients in queue</div>
+              </div>
+
+              <button type="button" class="btn btn-serve btn-serve-gen" id="btnServeGeneral">
+                Serve Next OPD Patient
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- APPOINTMENTS SCHEDULE DISPLAY -->
+        <div class="card glass-card">
+          <div class="card-header flex-header">
+            <div>
+              <h3>Scheduled Appointments</h3>
+              <p>Appointments managed by Department Schedulers.</p>
+            </div>
+            <span class="count-badge" id="appointmentsTotalBadge">0 Appointments</span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table" id="appointmentsTable">
+              <thead>
+                <tr>
+                  <th>Appt ID</th>
+                  <th>Patient</th>
+                  <th>Specialist</th>
+                  <th>Dept</th>
+                  <th>Time Slot</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="appointmentsTableBody">
+                <tr class="empty-row">
+                  <td colspan="7">No appointments booked yet. Use Tab [2] to book one.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- REAL-TIME NOTIFICATION DISPATCH FEED -->
+        <div class="card glass-card">
+          <div class="card-header flex-header">
+            <div>
+              <h3>Live Notification Dispatch Feed</h3>
+              <p>Demonstrates department-specific notification products in real time.</p>
+            </div>
+            <button type="button" id="btnClearFeed" class="btn btn-xs btn-ghost">Clear Log</button>
+          </div>
+
+          <div class="notifications-feed" id="notificationsFeed">
+            <div class="feed-item item-info">
+              <span class="feed-time">System</span>
+              <div class="feed-content">
+                <strong>MediQueue Initialized:</strong> GeneralHospitalFactory, EmergencyHospitalFactory, and VIPHospitalFactory ready.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <p><strong>MediQueue</strong> — Smart Hospital Queue & Appointment System • Course: <em>ISWE404L Design Pattern</em> (VIT)</p>
+      <p class="footer-team">Team: Sandhiya O H (23MIS0114) & Deepak Kumar S (23MIS0191) • Faculty: Senthil Kumaran U</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
