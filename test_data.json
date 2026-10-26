@@ -1,0 +1,150 @@
+{
+  "project": "MediQueue — Smart Hospital Queue & Appointment Management System",
+  "design_pattern": "Abstract Factory",
+  "team": [
+    {
+      "name": "Sandhiya O H",
+      "reg_no": "23MIS0114"
+    },
+    {
+      "name": "Deepak Kumar S",
+      "reg_no": "23MIS0191"
+    }
+  ],
+  "departments": [
+    {
+      "code": "GEN",
+      "name": "General Department",
+      "avg_wait_minutes": 15,
+      "notification_channel": "SMS"
+    },
+    {
+      "code": "EMG",
+      "name": "Emergency Department",
+      "avg_wait_minutes": 0,
+      "notification_channel": "SMS + EMERGENCY ALERT"
+    },
+    {
+      "code": "VIP",
+      "name": "VIP Department",
+      "avg_wait_minutes": 5,
+      "notification_channel": "EMAIL + SMS + CONCIERGE"
+    }
+  ],
+  "doctors": [
+    {
+      "doctor_id": "DOC-GEN-001",
+      "name": "Ramesh Kumar",
+      "specialization": "General Physician",
+      "department": "GENERAL",
+      "available": true,
+      "contact": "9876543001"
+    },
+    {
+      "doctor_id": "DOC-EMG-002",
+      "name": "Priya Menon",
+      "specialization": "Emergency Specialist",
+      "department": "EMERGENCY",
+      "available": true,
+      "contact": "9876543002"
+    },
+    {
+      "doctor_id": "DOC-VIP-003",
+      "name": "Arjun Nair",
+      "specialization": "Senior Consultant",
+      "department": "VIP",
+      "available": true,
+      "contact": "9876543003"
+    }
+  ],
+  "patients": [
+    {
+      "patient_id": "PAT-GEN-001",
+      "name": "Sandhiya",
+      "age": 22,
+      "contact": "9000000001",
+      "email": "sandhiya@email.com",
+      "department": "GENERAL",
+      "is_emergency": false
+    },
+    {
+      "patient_id": "PAT-GEN-002",
+      "name": "Deepak Kumar",
+      "age": 23,
+      "contact": "9000000002",
+      "email": "deepak@email.com",
+      "department": "GENERAL",
+      "is_emergency": false
+    },
+    {
+      "patient_id": "PAT-EMG-001",
+      "name": "Aravind",
+      "age": 45,
+      "contact": "9000000003",
+      "email": "aravind@email.com",
+      "department": "EMERGENCY",
+      "is_emergency": true
+    },
+    {
+      "patient_id": "PAT-VIP-001",
+      "name": "Meena",
+      "age": 38,
+      "contact": "9000000004",
+      "email": "meena@email.com",
+      "department": "VIP",
+      "is_emergency": false
+    }
+  ],
+  "queue_admissions": [
+    {
+      "patient_id": "PAT-GEN-001",
+      "department": "GENERAL",
+      "notes": "Regular checkup consultation"
+    },
+    {
+      "patient_id": "PAT-GEN-002",
+      "department": "GENERAL",
+      "notes": "Follow-up blood test review"
+    },
+    {
+      "patient_id": "PAT-EMG-001",
+      "department": "EMERGENCY",
+      "notes": "Severe chest pain - Immediate triage"
+    },
+    {
+      "patient_id": "PAT-VIP-001",
+      "department": "VIP",
+      "notes": "Executive annual health screening"
+    }
+  ],
+  "appointments": [
+    {
+      "patient_id": "PAT-GEN-001",
+      "doctor_id": "DOC-GEN-001",
+      "department": "GENERAL",
+      "time_slot": "10:00 AM"
+    },
+    {
+      "patient_id": "PAT-EMG-001",
+      "doctor_id": "DOC-EMG-002",
+      "department": "EMERGENCY",
+      "time_slot": "IMMEDIATE"
+    },
+    {
+      "patient_id": "PAT-VIP-001",
+      "doctor_id": "DOC-VIP-003",
+      "department": "VIP",
+      "time_slot": "02:00 PM"
+    }
+  ],
+  "reschedule_tests": [
+    {
+      "patient_id": "PAT-VIP-001",
+      "department": "VIP",
+      "new_time_slot": "03:30 PM"
+    }
+  ],
+  "emergency_broadcasts": [
+    "Critical patient admitted to Emergency Ward! Trauma team on standby."
+  ]
+}

@@ -4,7 +4,7 @@
 
 **Course:** ISWE404L — Design Pattern  
 **Institution:** Vellore Institute of Technology (VIT)  
-**Faculty:** Senthil Kumar M
+**Faculty:** Senthil Kumaran U
 
 ## 👥 Team Members
 
@@ -283,50 +283,40 @@ Choose one of the following options:
 
 ## ▶️ How to Run
 
-### Option 1: Run Using an IDE
+### Mode 1: Automated Test Run with Test Data (No User Input)
 
-This is the simplest option for a project with multiple Java source files.
-
-1. Open the project in your preferred Java IDE.
-2. Ensure `src` is configured as the source directory.
-3. Open `Main.java`.
-4. Run the `main()` method.
-
-### Option 2: Run Using Linux, macOS, or Git Bash
-
-From the project root, execute:
+To execute the test suite with pre-configured test data from `test_data.json`:
 
 ```bash
-cd src
-
-mkdir -p out
-
-find . -name "*.java" > sources.txt
-
-javac -d out @sources.txt
-
-java -cp out Main
+python test.py
 ```
 
-### Option 3: Run Using Windows PowerShell
+- **Data File:** Reads doctors, patients, appointments, and emergency cases from [`test_data.json`](file:///c:/Users/sandh/.gemini/antigravity-ide/scratch/Medi_Queue/test_data.json).
+- **Execution:** Demonstrates department creation, token assignment, queue priority handling, appointment bookings, rescheduling, and notifications without requiring interactive manual input.
 
-From the project root, execute:
+---
 
+### Mode 2: Interactive Application (User Input Driven)
+
+To run the interactive system where users can register patients, book appointments, manage queues, and administer departments:
+
+#### Option A: Run Using Python
+```bash
+python main.py
+```
+
+#### Option B: Run Using Java (Terminal / PowerShell)
 ```powershell
 cd src
-
-New-Item -ItemType Directory -Force -Path out | Out-Null
-
-Get-ChildItem -Recurse -Filter *.java |
-    ForEach-Object { $_.FullName } |
-    Set-Content sources.txt
-
 javac -d out @sources.txt
-
 java -cp out Main
 ```
 
-**Important:** These terminal commands assume that `Main` is in the default Java package. If your project declares a package for `Main.java`, use its fully qualified class name when running the application.
+#### Option C: Run Using an IDE
+1. Open the project in IntelliJ IDEA, Eclipse, or VS Code.
+2. Ensure `src` is configured as the source directory.
+3. Open `Main.java` (or `main.py`) and run.
+
 
 ---
 
